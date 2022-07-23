@@ -115,46 +115,13 @@ albums = lapply(html_tables, html_table_to_dt)
 # However currently all the data.tables need a lot of tidying.
 
 
-# 4. TEMP -----------------------------------------------------------------
-
-# Example how a data table looks currently:
-
-albums[["live"]]
-
-
-View(albums[["live"]])
-
-
-DT_list = lapply(html_tables[[2]], html_table_to_dt)
-
-testi <- html_table_to_dt(html_tables[[2]])
-DT_list = NULL
-
-print(DT_list)
-
-DT_list = list()
-append(DT_list, html_table_to_dt(html_tables[[ALBUM_POSITIONS["studio"]]]))
-DT_list
-
-studio_dt <- html_tables[[ALBUM_POSITIONS["studio"]]] |>
-  html_table_to_dt()
-
-
-DT_list = list(studio_dt, live_dt, compilation_dt, single_dt)
-
-ALBUM_POSITIONS[1]
-
-for (thing in names(ALBUM_POSITIONS)){
-  print(thing)
-}
+# 4. REMOVE WIKIPEDIA REFERENCES ----------------------------------------------
 
 
 
-#get all tables:
-joni_html_tables <- html_elements(joni_html, "table")
-# take only albums (second table)
-joni_albums_table <- joni_html_tables[[2]]
-#create a data.frame
-joni_df <- html_table(joni_albums_table)
-#create a data.table
-joni_dt <- as.data.table(joni_df)
+# 5. FIXING THE HEADERS -------------------------------------------------------
+
+
+# Because the original HTML tables have a partial double header, the more
+# useful part of header is currently the first row of the table. We'll copy
+# that to the as the header.
