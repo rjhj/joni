@@ -1,7 +1,18 @@
+# DESCRIPTION -----------------------------------------------------------------
 #
-# Data wrangling exercise with Joni Mitchell albums
-# using R's data.table library.
+# JONI by rjhj, https://github.com/rjhj/joni
+#
+# A data wrangling exercise with Joni Mitchell albums using R's data.table library.
+#
+# URL: https://en.wikipedia.org/wiki/Joni_Mitchell_discography
+#
+# These original HTML tables from Wikipedia need to be transformed heavily,
+# since they have partial double headers, some combined cells, columns
+# containing different pieces of information and other issues.
+#
+# The goal is to transform the HTML tables to usable data.tables.
 # 
+# See README.md for screenshots and more information
 
 
 # LIBRARIES ---------------------------------------------------------------
@@ -23,6 +34,7 @@ ALBUM_POSITIONS = c(
   'compilation' = 4L,
   'single' = 6L
 )
+
 
 # 1. URL TO HTML TABLES -------------------------------------------------------
 
@@ -47,6 +59,7 @@ html_tables_all <- URL |>
 #  11. Archives series
 #  12. Collaborations
 
+
 # 2. CHOOSE ONLY THE RELEVANT TABLES-------------------------------------------
 
 # Create an empty object to store only the relevant tables
@@ -69,3 +82,79 @@ names(html_tables) <- names(ALBUM_POSITIONS)
 # compilation and single
 
 
+# 3. CONVERT THE HTML TABLES TO DATA.TABLES------------------------------------
+
+# Create an object where to store all the data.tables
+albums = NULL
+
+html_table_to_dt <- function(html_table){
+  # Converts the html table into a data.frame
+  #
+  # Args:
+  #   html_table: HTML containing <table...>..</tbody>
+  #
+  # Returns:
+  #   data.table
+  return(
+    html_table |> # Variable containing HTML table 
+      html_table() |> # Parses the html table in a data frame
+      as.data.table() # Coerces the data.frame to data.table
+  )
+}
+
+# Apply the html to data.table conversion to all the HTML tables
+albums = lapply(html_tables, html_table_to_dt)
+
+
+## CONCLUSION PART 3
+# albums list now contains the four data.tables. You can access them using:
+# albums[["live"]] for live albums, etc
+# class(albums[["live"]]) returns [1] "data.table" "data.frame" as it should
+# View(albums[["live"]]) to see the data.table in RStudio
+#
+# However currently all the data.tables need a lot of tidying.
+
+
+# 4. TEMP -----------------------------------------------------------------
+
+# Example how a data table looks currently:
+
+albums[["live"]]
+
+
+View(albums[["live"]])
+
+
+DT_list = lapply(html_tables[[2]], html_table_to_dt)
+
+testi <- html_table_to_dt(html_tables[[2]])
+DT_list = NULL
+
+print(DT_list)
+
+DT_list = list()
+append(DT_list, html_table_to_dt(html_tables[[ALBUM_POSITIONS["studio"]]]))
+DT_list
+
+studio_dt <- html_tables[[ALBUM_POSITIONS["studio"]]] |>
+  html_table_to_dt()
+
+
+DT_list = list(studio_dt, live_dt, compilation_dt, single_dt)
+
+ALBUM_POSITIONS[1]
+
+for (thing in names(ALBUM_POSITIONS)){
+  print(thing)
+}
+
+
+
+#get all tables:
+joni_html_tables <- html_elements(joni_html, "table")
+# take only albums (second table)
+joni_albums_table <- joni_html_tables[[2]]
+#create a data.frame
+joni_df <- html_table(joni_albums_table)
+#create a data.table
+joni_dt <- as.data.table(joni_df)
