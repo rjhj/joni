@@ -105,6 +105,9 @@ html_table_to_dt <- function(html_table){
 # Apply the html to data.table conversion to all the HTML tables
 albums = lapply(html_tables, html_table_to_dt)
 
+# Albums are fairly uniform, but the last columns of "studio" is junk,
+# so let's remove it
+albums[["studio"]][,ncol(albums[["studio"]]) := NULL]
 
 ## CONCLUSION PART 3
 # albums list now contains the four data.tables. You can access them using:
@@ -117,7 +120,22 @@ albums = lapply(html_tables, html_table_to_dt)
 
 # 4. REMOVE WIKIPEDIA REFERENCES ----------------------------------------------
 
+remove_references <- function(dt){
+  cols <- c(1:ncol(dt))
+  dt[,(cols) := lapply(.SD, str_remove_all, "\\[[:alnum:]+\\]"), .SDcols = cols]
+}
 
+lapply(albums, remove_references)
+
+
+#Helpers, remove:
+View(albums[["studio"]])
+View(albums[["live"]])
+View(albums[["compilation"]])
+View(albums[["single"]])
+
+## CONCLUSION PART 4
+# 
 
 # 5. FIXING THE HEADERS -------------------------------------------------------
 
