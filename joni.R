@@ -119,27 +119,52 @@ albums[["studio"]][,ncol(albums[["studio"]]) := NULL]
 
 
 # 4. REMOVE WIKIPEDIA REFERENCES ----------------------------------------------
+# Since the tables are from Wikipedia there are 
+# plenty of links to references, for example,
+# [12] or [A]. They need to be removed from the data.
+
 
 remove_references <- function(dt){
-  cols <- c(1:ncol(dt))
-  dt[,(cols) := lapply(.SD, str_remove_all, "\\[[:alnum:]+\\]"), .SDcols = cols]
+  # Takes a data.table and removes every pattern from
+  # data where any number (>=1) of alphanumerical characters
+  # are inside of brackets, for example, [8].
+  #
+  # Args:
+  #   dt: data.table from where the citation links are removed
+  #
+  # Returns:
+  #   data.table, but not explicitly
+  cols <- c(1:ncol(dt)) # Apply to all columns
+  dt[,(cols) := # Assign by reference
+       lapply(.SD, # Apply function to all columns
+       str_remove_all, # Removes all patterns of:
+       "\\[[:alnum:]+\\]"), # [ALPHANUM+]
+       .SDcols = cols] # Use all the columns
 }
 
-lapply(albums, remove_references)
+albums |> # Use all the data.tables
+  lapply(remove_references) |> # Have their references removed
+  invisible() # Hide printing
+  
+
+## CONCLUSION PART 4
+# Now all the Wikipedia references/citations
+# have been removed.
 
 
-#Helpers, remove:
+# 5. FIXING THE HEADERS -------------------------------------------------------
+
+# Because all the original HTML tables have a partial double header, the more
+# useful part of header is currently the first row of the table. That works
+# well as the actual header.
+
+# Make this a function:
+setnames(albums[["studio"]],
+         as.character(albums[["studio"]][1]))
+
+
+#Helpers, to be removed:
 View(albums[["studio"]])
 View(albums[["live"]])
 View(albums[["compilation"]])
 View(albums[["single"]])
-
-## CONCLUSION PART 4
-# 
-
-# 5. FIXING THE HEADERS -------------------------------------------------------
-
-
-# Because the original HTML tables have a partial double header, the more
-# useful part of header is currently the first row of the table. We'll copy
-# that to the as the header.
