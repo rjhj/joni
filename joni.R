@@ -14,13 +14,11 @@
 # 
 # See README.md for screenshots and more information
 
-
 # LIBRARIES ---------------------------------------------------------------
 
 library(data.table) # for data wrangling
 library(rvest) # for web scraping.
 library(stringr) # for string manipulation
-
 
 # CONSTANTS (ALL CONSTANTS ARE CAPITALIZED FOR CLARITY)------------------------
 
@@ -34,7 +32,6 @@ ALBUM_POSITIONS = c(
   'compilation' = 4L,
   'single' = 6L
 )
-
 
 # 1. URL TO HTML TABLES -------------------------------------------------------
 
@@ -59,7 +56,6 @@ html_tables_all <- URL |>
 #  11. Archives series
 #  12. Collaborations
 
-
 # 2. CHOOSE ONLY THE RELEVANT TABLES-------------------------------------------
 
 # Create an empty object to store only the relevant tables
@@ -80,7 +76,6 @@ names(html_tables) <- names(ALBUM_POSITIONS)
 ## CONCLUSION PART 2
 # html_tables list now contains all the relevant tables: studio, live,
 # compilation and single
-
 
 # 3. CONVERT THE HTML TABLES TO DATA.TABLES------------------------------------
 
@@ -114,15 +109,12 @@ albums[["studio"]][,ncol(albums[["studio"]]) := NULL]
 # albums[["live"]] for live albums, etc
 # class(albums[["live"]]) returns [1] "data.table" "data.frame" as it should
 # View(albums[["live"]]) to see the data.table in RStudio
-#
 # However currently all the data.tables need a lot of tidying.
-
 
 # 4. REMOVE WIKIPEDIA REFERENCES ----------------------------------------------
 # Since the tables are from Wikipedia there are 
 # plenty of links to references, for example,
 # [12] or [A]. They need to be removed from the data.
-
 
 remove_references <- function(dt){
   # Takes a data.table and removes every pattern from
@@ -142,25 +134,56 @@ remove_references <- function(dt){
        .SDcols = cols] # Use all the columns
 }
 
-albums |> # Use all the data.tables
-  lapply(remove_references) |> # Have their references removed
-  invisible() # Hide printing
+clean_up <- function(dts, fun) {
+  # Used to apply different cleaning functions
+  # to all the data.tables and hide the printing.
+  #
+  # Args:
+  #   dts: list of data.tables
+  #   fun: function to be used
+  #
+  # Returns:
+  #   data.table, but not explicitly
+  dts |> # Use all the data.tables
+    lapply(fun) |> # Use function to all of them
+    invisible() # Hide printing
   
+}
 
+#Remove Wikipedia references from all cells
+clean_up(albums, remove_references)
+  
 ## CONCLUSION PART 4
 # Now all the Wikipedia references/citations
 # have been removed.
 
-
 # 5. FIXING THE HEADERS -------------------------------------------------------
-
 # Because all the original HTML tables have a partial double header, the more
 # useful part of header is currently the first row of the table. That works
 # well as the actual header.
 
-# Make this a function:
-setnames(albums[["studio"]],
-         as.character(albums[["studio"]][1]))
+first_row_to_header <- function(dt){
+  # Replaces the headers with the first row, since
+  # original table used double header.
+  #
+  # Args:
+  #   dt: data.table
+  #
+  # Returns:
+  #   data.table, but not explicitly
+  setnames(dt, # data.table to be used
+           as.character( # Convert data.table to a character vector
+             dt[1])) # First row will be the new names
+}
+
+# Sets first row as headers
+clean_up(albums, first_row_to_header)
+
+## CONCLUSION PART 5
+# Headers have been fixed
+
+# 6.REMOVE LAST AND FIRST ROW -------------------------------------------------
+
 
 
 #Helpers, to be removed:
