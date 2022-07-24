@@ -123,9 +123,6 @@ remove_references <- function(dt){
   #
   # Args:
   #   dt: data.table from where the citation links are removed
-  #
-  # Returns:
-  #   data.table, but not explicitly
   cols <- c(1:ncol(dt)) # Apply to all columns
   dt[,(cols) := # Assign by reference
        lapply(.SD, # Apply function to all columns
@@ -141,9 +138,6 @@ clean_up <- function(dts, fun) {
   # Args:
   #   dts: list of data.tables
   #   fun: function to be used
-  #
-  # Returns:
-  #   data.table, but not explicitly
   dts |> # Use all the data.tables
     lapply(fun) |> # Use function to all of them
     invisible() # Hide printing
@@ -168,9 +162,6 @@ first_row_to_header <- function(dt){
   #
   # Args:
   #   dt: data.table
-  #
-  # Returns:
-  #   data.table, but not explicitly
   setnames(dt, # data.table to be used
            as.character( # Convert data.table to a character vector
              dt[1])) # First row will be the new names
@@ -183,8 +174,31 @@ clean_up(albums, first_row_to_header)
 # Headers have been fixed
 
 # 6.REMOVE LAST AND FIRST ROW -------------------------------------------------
+# First and last line for all the data.tables are junk, so they need to be
+# removed. Currently first lines are just copies of the headers and the last
+# lines say: "—" denotes a recording that did not chart or was not released
+# in that territory.
 
+remove_first_and_last_row <- function(dt){
+  # Removes the first and last row from a data.table.
+  #
+  # Args:
+  #   dt: data.table
+  #
+  # Returns:
+  #   dt: data.table
+  dt <- dt[-.N] # Remove the last row
+  dt <- dt[c(-1)] # Remove the first row  
+  return(dt)
+}
 
+# Removes first and last row for each data.table.
+albums = lapply(albums, remove_first_and_last_row)
+
+## CONCLUSION PART 6
+# "Junk rows" have been removed
+
+# 7. -------------------------------------------------
 
 #Helpers, to be removed:
 View(albums[["studio"]])
