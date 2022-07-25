@@ -210,7 +210,7 @@ albums = lapply(albums, remove_first_and_last_row)
 
 album_details_to_three_columns <- function(dt){
   # Removes "Album details" by turning it to three columns: "Month", "Year"
-  # and "Label". Puts these new columns after "Title"
+  # and "Label". Changes months to numbers. Puts these new columns after "Title"
   #
   # Args:
   #   dt: data.table
@@ -223,11 +223,18 @@ album_details_to_three_columns <- function(dt){
     Label = str_extract(Details, "(?<=Label: )\\w+") # Word after "Label: "
   )]
   
+  # Change months to numbers, for example, "May" to 5. Match() return NA
+  # when it doesn't find a valid month.
+  dt[, Month := match(Month, month.name)]
+  
+  # Change column type
+  ########## UNDER CONSTRUCTION#############
+  
+  
   dt[, Details := NULL] # Drop column "Details"
 
   setcolorder(dt, c("Month", "Year", "Label"), #Move these three columns..
               after = c("Title")) # ..to be after the "Title".
-
 }
 
 # Removes and turns column "Album details" to "Month", "Year" and "Label" columns
@@ -235,11 +242,10 @@ album_details_to_three_columns <- function(dt){
 clean_up(albums[c("studio", "live", "compilation")], album_details_to_three_columns)
 
 ## CONCLUSION PART 7
-# Now "Album details" columns is removed and replaced with "Month", "Year" and "Label".
+# Now "Album details" columns is removed and replaced with
+# "Month", "Year" and "Label".
 
 # 8. ----------------------------------------------------------------------
-
-
 
 #Helpers, to be removed:
 View(albums[["studio"]])
