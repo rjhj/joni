@@ -16,9 +16,9 @@
 
 # LIBRARIES ---------------------------------------------------------------
 
-library(data.table) # for data wrangling
-library(rvest) # for web scraping.
-library(stringr) # for string manipulation
+library(data.table) # For data wrangling
+library(rvest) # For web scraping.
+library(stringr) # For string manipulation
 
 # CONSTANTS (ALL CONSTANTS ARE CAPITALIZED FOR CLARITY)------------------------
 
@@ -198,7 +198,48 @@ albums = lapply(albums, remove_first_and_last_row)
 ## CONCLUSION PART 6
 # "Junk rows" have been removed
 
-# 7. -------------------------------------------------
+# 7. EXTRACTING FROM ONE COLUMN TO MAKE THREE----------------------------------
+# All the data.tables (except single) has a column "Album details", for example,
+#
+# albums[["studio"]][1, c("Album details")] returns:
+# Released: March 1968\nLabel: Reprise
+#
+# We need to extract columns "Month", "Year" and "Label" from "Album details"
+
+# Step 1: Renaming "Album details" to "Details" for easier processing
+
+album_details_to_three_columns <- function(dt){
+  # Removes "Album details" by turning it to three columns: "Month", "Year"
+  # and "Label". Puts these new columns after "Title"
+  #
+  # Args:
+  #   dt: data.table
+  setnames(dt, "Album details", "Details") # Name changed for easier processing
+  
+  # Create new columns using assignment by reference and string extracting. 
+  dt[,':='( # Use assignment by reference function. Extract following patterns:
+    Month = str_extract(Details, "(?<=Released: )\\w+"), # Word after "Released: "
+    Year = str_extract(Details, "[:digit:]{4}"), # Any exactly four digits 
+    Label = str_extract(Details, "(?<=Label: )\\w+") # Word after "Label: "
+  )]
+  
+  dt[, Details := NULL] # Drop column "Details"
+
+  setcolorder(dt, c("Month", "Year", "Label"), #Move these three columns..
+              after = c("Title")) # ..to be after the "Title".
+
+}
+
+# Removes and turns column "Album details" to "Month", "Year" and "Label" columns
+# for data.tables "studio,  "live" and "compilation".
+clean_up(albums[c("studio", "live", "compilation")], album_details_to_three_columns)
+
+## CONCLUSION PART 7
+# Now "Album details" columns is removed and replaced with "Month", "Year" and "Label".
+
+# 8. ----------------------------------------------------------------------
+
+
 
 #Helpers, to be removed:
 View(albums[["studio"]])
