@@ -131,7 +131,7 @@ remove_references <- function(dt){
        .SDcols = cols] # Use all the columns
 }
 
-clean_up <- function(dts, fun) {
+clean_up <- function(dts, fun, ...) {
   # Used to apply different cleaning functions
   # to all the data.tables and hide the printing.
   #
@@ -139,7 +139,7 @@ clean_up <- function(dts, fun) {
   #   dts: list of data.tables
   #   fun: function to be used
   dts |> # Use all the data.tables
-    lapply(fun) |> # Use function to all of them
+    lapply(fun, ...) |> # Use function to all of them
     invisible() # Hide printing
   
 }
@@ -227,10 +227,6 @@ album_details_to_three_columns <- function(dt){
   # when it doesn't find a valid month.
   dt[, Month := match(Month, month.name)]
   
-  # Change column type
-  ########## UNDER CONSTRUCTION#############
-  
-  
   dt[, Details := NULL] # Drop column "Details"
 
   setcolorder(dt, c("Month", "Year", "Label"), #Move these three columns..
@@ -245,7 +241,33 @@ clean_up(albums[c("studio", "live", "compilation")], album_details_to_three_colu
 # Now "Album details" columns is removed and replaced with
 # "Month", "Year" and "Label".
 
-# 8. ----------------------------------------------------------------------
+# 8. CHANGE COLUMN TYPES ------------------------------------------------------
+# Currently all columns for all tables are characters. Here
+# Month and Year will be converted to numeric.
+
+
+change_column_types <- function(dt, cols, fun){
+  # Currently turns all Year and Month columns to numeric.
+  # This function might later be used to do other type
+  # conversions also.
+  #
+  # Args:
+  #   dt: data.table  
+  #   cols: columns we want to coerce to a different type
+  #   fun: coercing function (such as as.numeric)
+  
+  # Rebuild cols to only have the columns that exist in data.table
+  # For example, "single" doesn't have "Month", so cols will only have "Year"
+  cols <- cols[cols %in% names(dt)]
+  
+  
+  dt[, (cols) := lapply(.SD, fun), .SDcols = cols]
+
+}
+
+
+clean_up(albums, change_column_types, c("Year", "Month"), as.numeric)
+
 
 #Helpers, to be removed:
 View(albums[["studio"]])
