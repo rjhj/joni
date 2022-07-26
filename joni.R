@@ -230,16 +230,29 @@ album_details_to_three_columns <- function(dt){
   dt[, Details := NULL] # Drop column "Details"
 
   setcolorder(dt, c("Month", "Year", "Label"), #Move these three columns..
-              after = c("Title")) # ..to be after the "Title".
+              after = "Title") # ..to be after the "Title".
 }
 
 # Removes and turns column "Album details" to "Month", "Year" and "Label" columns
 # for data.tables "studio,  "live" and "compilation".
 lapply_invis(albums[c("studio", "live", "compilation")], album_details_to_three_columns)
 
+
+# 7b. UPDATE SINGLES TO BE MORE SIMILAR WITH OTHERS ----------------------------
+# Currently single doesn't have a title column, so let's change that.
+
+# Create a new column Title from Single but with double quotes removed
+albums[["single"]][, "Title" := str_remove_all(Single, '\\"')]
+
+# Drop Single
+albums[["single"]][,"Single" := NULL]
+
+# Move Title to the first position.
+setcolorder(albums[["single"]], "Title", before = "Year")
+
 ## CONCLUSION PART 7
-# Now "Album details" columns is removed and replaced with
-# "Month", "Year" and "Label".
+# Now "Album details" columns is removed and replaced with "Month", "Year"
+# and "Label". In 7b changed single to have a Title columns like the others.
 
 # 8. CHANGE COLUMN TYPES ------------------------------------------------------
 # Currently all columns for all tables are characters. Here
@@ -288,7 +301,8 @@ lapply_invis(albums, change_column_types, c("Year", "Month"), as.numeric)
 # To speed up future queries, we set keys and indices.
 
 set_keys <- function(dt, cols){
-  # Sets keys the data.table. Only set those keys that are valid columns.
+  # Sets keys to the data.table. Only sets those keys that exist as columns
+  # in the data.table
   # Args:
   #   dt: data.table  
   #   cols: character vector of columns to use as keys
@@ -300,7 +314,7 @@ set_keys <- function(dt, cols){
 # but only sets the valid keys
 lapply_invis(albums, set_keys, c("Year", "Month"))  
 
-
+#lapply(albums, setindex, "Title")
 
 
 #Helpers, to be removed:
