@@ -245,6 +245,18 @@ lapply_invis(albums[c("studio", "live", "compilation")], album_details_to_three_
 # Currently all columns for all tables are characters. Here
 # Month and Year will be converted to numeric.
 
+update_to_valid_cols <- function(dt, cols){
+  # Returns only columns that exist in the data.table.
+  # For example, "single" doesn't have "Month", so from
+  # c("Year", "Month") only c("Year") would be returned.
+  # Args:
+  #   dt: data.table  
+  #   cols: list of columns
+  #
+  # Returns:
+  #   a character vector of existing column names
+  return(cols[cols %in% names(dt)])
+}
 
 change_column_types <- function(dt, cols, fun){
   # Currently turns all Year and Month columns to numeric.
@@ -257,8 +269,7 @@ change_column_types <- function(dt, cols, fun){
   #   fun: coercing function (such as as.numeric)
   
   # Rebuild cols to only have the columns that exist in the data.table
-  # For example, "single" doesn't have "Month", so cols will only have "Year"
-  cols <- cols[cols %in% names(dt)]
+  cols <- update_to_valid_cols(dt, cols)
   
   # Coerce all the columns in the cols to the type defined in fun.
   dt[, (cols) := lapply(.SD, fun), .SDcols = cols]
@@ -271,6 +282,24 @@ lapply_invis(albums, change_column_types, c("Year", "Month"), as.numeric)
 
 ## CONCLUSION PART 8
 # Now the data types have been changed to more suitable ones.
+
+
+# 9. SET KEYS AND INDICES -------------------------------------------------
+# To speed up future queries, we set keys and indices.
+
+set_keys <- function(dt, cols){
+  # Sets keys the data.table. Only set those keys that are valid columns.
+  # Args:
+  #   dt: data.table  
+  #   cols: character vector of columns to use as keys
+  cols <- update_to_valid_cols(dt, cols) # Update cols to only valid columns
+  setkeyv(dt, cols) # Sets keys
+}
+
+# Tried to set set first key as "Year" and second as "Month",
+# but only sets the valid keys
+lapply_invis(albums, set_keys, c("Year", "Month"))  
+
 
 
 
