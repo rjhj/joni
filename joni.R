@@ -141,7 +141,6 @@ lapply_invis <- function(dts, fun, ...) {
   dts |> # Use all the data.tables
     lapply(fun, ...) |> # Use function and other arguments to all
     invisible() # Hide printing
-  
 }
 
 #Remove Wikipedia references from all cells
@@ -237,7 +236,6 @@ album_details_to_three_columns <- function(dt){
 # for data.tables "studio,  "live" and "compilation".
 lapply_invis(albums[c("studio", "live", "compilation")], album_details_to_three_columns)
 
-
 # 7b. UPDATE SINGLES TO BE MORE SIMILAR WITH OTHERS ----------------------------
 # Currently single doesn't have a title column, so let's change that.
 
@@ -286,16 +284,13 @@ change_column_types <- function(dt, cols, fun){
   
   # Coerce all the columns in the cols to the type defined in fun.
   dt[, (cols) := lapply(.SD, fun), .SDcols = cols]
-
 }
 
 # Change the data types of "Year" and "Month" to numeric
 lapply_invis(albums, change_column_types, c("Year", "Month"), as.numeric)
 
-
 ## CONCLUSION PART 8
 # Now the data types have been changed to more suitable ones.
-
 
 # 9. SET KEYS AND INDICES -------------------------------------------------
 # To speed up future queries, we set keys and indices.
@@ -310,11 +305,16 @@ set_keys <- function(dt, cols){
   setkeyv(dt, cols) # Sets keys
 }
 
-# Tried to set set first key as "Year" and second as "Month",
-# but only sets the valid keys
+# Tries to set the first key as "Year" and second as "Month",
+# but only does this for valid keys
 lapply_invis(albums, set_keys, c("Year", "Month"))  
 
-#lapply(albums, setindex, "Title")
+# Set Title as a secondary index for all the data.tables
+lapply(albums, setindex, "Title")
+
+## CONCLUSION PART 9
+# All data.tables now have at least one key column (Year) and most have 
+# Month as the second key. They all have Title as a secondary index.
 
 
 #Helpers, to be removed:
