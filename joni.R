@@ -131,21 +131,21 @@ remove_references <- function(dt){
        .SDcols = cols] # Use all the columns
 }
 
-clean_up <- function(dts, fun, ...) {
-  # Used to apply different cleaning functions
-  # to all the data.tables and hide the printing.
+lapply_invis <- function(dts, fun, ...) {
+  # lapply wrapped inside invisible() to hide the printing.
   #
   # Args:
   #   dts: list of data.tables
   #   fun: function to be used
+  #   ... : additional parameters
   dts |> # Use all the data.tables
-    lapply(fun, ...) |> # Use function to all of them
+    lapply(fun, ...) |> # Use function and other arguments to all
     invisible() # Hide printing
   
 }
 
 #Remove Wikipedia references from all cells
-clean_up(albums, remove_references)
+lapply_invis(albums, remove_references)
   
 ## CONCLUSION PART 4
 # Now all the Wikipedia references/citations
@@ -168,7 +168,7 @@ first_row_to_header <- function(dt){
 }
 
 # Sets first row as headers
-clean_up(albums, first_row_to_header)
+lapply_invis(albums, first_row_to_header)
 
 ## CONCLUSION PART 5
 # Headers have been fixed
@@ -235,7 +235,7 @@ album_details_to_three_columns <- function(dt){
 
 # Removes and turns column "Album details" to "Month", "Year" and "Label" columns
 # for data.tables "studio,  "live" and "compilation".
-clean_up(albums[c("studio", "live", "compilation")], album_details_to_three_columns)
+lapply_invis(albums[c("studio", "live", "compilation")], album_details_to_three_columns)
 
 ## CONCLUSION PART 7
 # Now "Album details" columns is removed and replaced with
@@ -256,17 +256,22 @@ change_column_types <- function(dt, cols, fun){
   #   cols: columns we want to coerce to a different type
   #   fun: coercing function (such as as.numeric)
   
-  # Rebuild cols to only have the columns that exist in data.table
+  # Rebuild cols to only have the columns that exist in the data.table
   # For example, "single" doesn't have "Month", so cols will only have "Year"
   cols <- cols[cols %in% names(dt)]
   
-  
+  # Coerce all the columns in the cols to the type defined in fun.
   dt[, (cols) := lapply(.SD, fun), .SDcols = cols]
 
 }
 
+# Change the data types of "Year" and "Month" to numeric
+lapply_invis(albums, change_column_types, c("Year", "Month"), as.numeric)
 
-clean_up(albums, change_column_types, c("Year", "Month"), as.numeric)
+
+## CONCLUSION PART 8
+# Now the data types have been changed to more suitable ones.
+
 
 
 #Helpers, to be removed:
