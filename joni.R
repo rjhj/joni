@@ -290,7 +290,7 @@ change_column_types <- function(dt, cols, fun){
 lapply_invis(albums, change_column_types, c("Year", "Month"), as.numeric)
 
 ## CONCLUSION PART 8
-# Now the data types have been changed to more suitable ones.
+# Now the data types for Year and Month have been changed to numeric.
 
 # 9. SET KEYS AND INDICES -------------------------------------------------
 # To speed up future queries, we set keys and indices.
@@ -317,8 +317,32 @@ lapply(albums, setindex, "Title")
 # Month as the second key. They all have Title as a secondary index.
 
 
-#Helpers, to be removed:
-View(albums[["studio"]])
-View(albums[["live"]])
-View(albums[["compilation"]])
-View(albums[["single"]])
+# 10. QUERIES AND MODIFICATIONS -----------------------------------------------
+# Now all the tables have been turned to a usable form
+
+# Name the data.tables for ease of use
+studio =  albums[["studio"]]
+live = albums[["live"]]
+compilation = albums[["compilation"]]
+single = albums[["single"]]
+
+
+# 10a. ADD NUMBER OF SINGLES PER STUDIO ALBUM -------------------------------
+# Let's calculate the number of singles from single and add it to studio.
+# There are many ways to do this. I'm going to create a temporary data.table
+# called album_and_singles just for the sake of clarity and join it with studio.
+
+# .EACHI groups by i, .N contains the number of rows in each group
+album_and_singles <- single[studio, .("N_of_singles" = .N),
+               by=.EACHI, on = c(Album = "Title")]
+
+# Join the tables
+studio <- studio[album_and_singles, on = c(Title = "Album")]
+
+# This would be the same thing without creating the extra data.table:
+# studio <- studio[single[studio, .("N_of_singles" = .N),
+# by=.EACHI, on = c(Album = "Title")], on = c(Title = "Album")]
+
+
+
+
