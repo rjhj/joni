@@ -361,5 +361,18 @@ album_and_singles[, Single := #Create a new column with the walrus operator
 album_and_singles <- dcast(album_and_singles, Album ~ Single,
                            value.var = c("Title"))
 
-# STILL NEEDS TO BE ORDERED
+# Currently album_and_singles isn't ordered. Let's add Year and Month for each
+# album. Since some albums are studio and some live, we'll row bind them first.
+studio_and_live <- rbind(studio[,.(Title, Year, Month)],
+                         live[,.(Title, Year, Month)])
+
+# Now add Month and Year columns
+album_and_singles[studio_and_live, ':='(Month = i.Month,
+                                        Year = i.Year), on = c(Album = "Title")]
+
+# Sets Month and Year to be located after Album
+setcolorder(album_and_singles, c("Month", "Year"), after = c("Album"))
+
+# Sets keys Year and Month to order the data and allow fast searches
+setkey(album_and_singles, Year, Month)
 
