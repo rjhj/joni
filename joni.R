@@ -344,5 +344,22 @@ studio <- studio[album_and_singles, on = c(Title = "Album")]
 # by=.EACHI, on = c(Album = "Title")], on = c(Title = "Album")]
 
 
+# 10b. Singles as columns for each album -------------------------------------
 
+# I don't want to modify 'single', so I'll use the now useless album_and_singles
+# (which was used as a temporary data.table in 10a.) to store the columns
+# Album and Title.
+album_and_singles <- single[, .(Album, Title)]
+
+
+album_and_singles[, Single := #Create a new column with the walrus operator
+                    paste0("Single_", # Create a string starting with "Single_"
+                           1:.N), # String ends with a with sequential ID.
+                  by = Album] # Group by album to match .N with N of singles
+
+# Using dcast to achieve "long to wide" operation. 
+album_and_singles <- dcast(album_and_singles, Album ~ Single,
+                           value.var = c("Title"))
+
+# STILL NEEDS TO BE ORDERED
 
