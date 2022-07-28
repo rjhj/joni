@@ -7,7 +7,7 @@
 # The original HTML tables from Wikipedia are transformed to tidy and usable
 # data.tables. See README.md for screenshots and more information.
 
-# 1. LIBRARIES -----------------------------------------------------------------
+# 1a. LIBRARIES -----------------------------------------------------------------
 
 library(data.table) # Enhanced data.frame
 library(rvest) # For web scraping and HTML element manipulations
@@ -170,7 +170,7 @@ albums = lapply(albums, remove_first_and_last_row)
 ## CONCLUSION PART 6
 # "Junk rows" have been removed
 
-# 7. EXTRACTING FROM ONE COLUMN TO MAKE THREE-----------------------------------
+# 7a. EXTRACTING FROM ONE COLUMN TO MAKE THREE-----------------------------------
 # All the data.tables (except single) has a column "Album details", which might
 # contain rows such as: "Released: March 1968\nLabel: Reprise".
 # We need to extract columns "Year", "Month" and "Label" from "Album details"
@@ -258,7 +258,7 @@ lapply_invis(albums, change_column_types, c("Year", "Month"), as.numeric)
 ## CONCLUSION PART 8
 # Now the data types for Year and Month have been changed to numeric.
 
-# 9. SET KEYS AND INDICES ------------------------------------------------------
+# 9a. SET KEYS AND INDICES ------------------------------------------------------
 # To speed up future queries, we set keys and indices.
 
 set_keys <- function(dt, cols){
@@ -278,11 +278,7 @@ lapply_invis(albums, set_keys, c("Year", "Month"))
 # Set Title as a secondary index for all the data.tables
 lapply(albums, setindex, "Title")
 
-## CONCLUSION PART 9
-# All data.tables now have at least one key column (Year) and most have 
-# Month as the second key. They all have Title as a secondary index.
-
-# 10. CONNECTING SINGLES WITH THEIR ALBUMS -------------------------------------
+# 9b. CONNECTING SINGLES WITH THEIR ALBUMS -------------------------------------
 
 # Now all the tables have been turned to a usable form
 # Let's name the data.tables for easier use
@@ -290,6 +286,12 @@ studio =  albums[["studio"]]
 live = albums[["live"]]
 compilation = albums[["compilation"]]
 single = albums[["single"]]
+
+## CONCLUSION PART 9
+# All data.tables now have at least one key column (Year) and most have 
+# Month as the second key. They all have Title as a secondary index.
+# Also in 9b. created a variable for each data.table in the albums list
+# for convenience.
 
 # 10a. ADD NUMBER OF SINGLES PER STUDIO ALBUM ----------------------------------
 # Let's calculate the number of singles from single and add it to studio.
@@ -308,12 +310,11 @@ studio <- studio[album_and_singles, on = c(Title = "Album")]
 # by=.EACHI, on = c(Album = "Title")], on = c(Title = "Album")]
 
 # 10b. Singles as columns for each album ---------------------------------------
+# We want to create a data.table which contains singles as columns
+# (Single_1, etc) for their albums. Each album has 1-3 singles.
 
-# I don't want to modify 'single', so I'll use the now useless album_and_singles
-# (which was used as a temporary data.table in 10a.) to store the columns
-# Album and Title.
-album_and_singles <- single[, .(Album, Title)]
-
+# Overwriting album_and_singles, which has used in 10a. as temporary data.table
+album_and_singles <- single[, .(Album, Title)] # Get Album and Title columns
 
 album_and_singles[, Single := #Create a new column with the walrus operator
                     paste0("Single_", # Create a string starting with "Single_"
