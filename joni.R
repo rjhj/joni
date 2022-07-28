@@ -2,30 +2,23 @@
 #
 # JONI by rjhj, https://github.com/rjhj/joni
 #
-# A data wrangling exercise with Joni Mitchell albums using R's data.table library.
+# A data wrangling exercise with Joni Mitchell albums using R's data.table.
 #
-# URL: https://en.wikipedia.org/wiki/Joni_Mitchell_discography
-#
-# These original HTML tables from Wikipedia need to be transformed heavily,
-# since they have partial double headers, some combined cells, columns
-# containing different pieces of information and other issues.
-#
-# The goal is to transform the HTML tables to usable data.tables.
-# 
-# See README.md for screenshots and more information
+# The original HTML tables from Wikipedia are transformed to tidy and usable
+# data.tables. See README.md for screenshots and more information.
 
 # LIBRARIES ---------------------------------------------------------------
 
-library(data.table) # For data wrangling
-library(rvest) # For web scraping.
+library(data.table) # Enhanced data.frame
+library(rvest) # For web scraping and HTML element manipulations
 library(stringr) # For string manipulation
 
 # CONSTANTS (ALL CONSTANTS ARE CAPITALIZED FOR CLARITY)------------------------
 
-# Website where to find the tables
+# Website where to find the tables. Backup html is in the files folder
 URL = "https://en.wikipedia.org/wiki/Joni_Mitchell_discography"
 
-# There are 12 tables on the website, but I only want these four
+# There are 12 tables on the website, but I want to use only these four
 ALBUM_POSITIONS = c(
   'studio'= 2L,
   'live' = 3L,
@@ -35,10 +28,8 @@ ALBUM_POSITIONS = c(
 
 # 1. URL TO HTML TABLES -------------------------------------------------------
 
-# Get table elements from URL
-html_tables_all <- URL |>
-  read_html() |> # Read URL
-  html_elements("table") # Takes only <table>'s
+html_tables_all <- read_html(URL) |> # Read html from URL
+  html_elements("table") # Find all <table> elements
 
 ## CONCLUSION PART 1
 # Now html_tables_all contains a list of all the 12 html tables
@@ -58,8 +49,7 @@ html_tables_all <- URL |>
 
 # 2. CHOOSE ONLY THE RELEVANT TABLES-------------------------------------------
 
-# Create an empty object to store only the relevant tables
-html_tables = NULL
+html_tables = NULL # Creates an empty object to be used to store the relevant tables
 
 # Save the four relevant tables (defined in ALBUM_POSITIONS)
 # to html_tables using a for-loop
