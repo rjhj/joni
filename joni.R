@@ -228,7 +228,7 @@ album_details_to_three_columns <- function(dt){
   
   dt[, Details := NULL] # Drop column "Details"
 
-  setcolorder(dt, c("Month", "Year", "Label"), #Move these three columns..
+  setcolorder(dt, c("Year", "Month", "Label"), #Move these three columns..
               after = "Title") # ..to be after the "Title".
 }
 
@@ -371,7 +371,7 @@ album_and_singles[studio_and_live, ':='(Month = i.Month,
                                         Year = i.Year), on = c(Album = "Title")]
 
 # Sets Month and Year to be located after Album
-setcolorder(album_and_singles, c("Month", "Year"), after = c("Album"))
+setcolorder(album_and_singles, c("Year", "Month"), after = c("Album"))
 
 # Sets keys Year and Month to order the data and allow fast searches
 setkey(album_and_singles, Year, Month)
