@@ -38,6 +38,8 @@ ALBUM_POSITIONS = c(
   'compilation' = 4L,
   'single' = 6L
 )
+## CONCLUSION PART 1
+# Now libraries and constants have been defined.
 
 # 2. TURN URL TO RELEVANT HTML TABLES ------------------------------------------
 
@@ -119,8 +121,7 @@ lapply_invis <- function(dts, fun, ...) {
 lapply_invis(albums, remove_references)
   
 ## CONCLUSION PART 4
-# Now all the Wikipedia references/citations
-# have been removed.
+# Now all the Wikipedia references have been removed.
 
 # 5. FIXING THE HEADERS --------------------------------------------------------
 # Because all the original HTML tables have a partial double header, the more
@@ -170,15 +171,12 @@ albums = lapply(albums, remove_first_and_last_row)
 # "Junk rows" have been removed
 
 # 7. EXTRACTING FROM ONE COLUMN TO MAKE THREE-----------------------------------
-# All the data.tables (except single) has a column "Album details", for example,
-#
-# albums[["studio"]][1, c("Album details")] returns:
-# Released: March 1968\nLabel: Reprise
-#
-# We need to extract columns "Month", "Year" and "Label" from "Album details"
+# All the data.tables (except single) has a column "Album details", which might
+# contain rows such as: "Released: March 1968\nLabel: Reprise".
+# We need to extract columns "Year", "Month" and "Label" from "Album details"
 
 album_details_to_three_columns <- function(dt){
-  # Removes "Album details" by turning it to three columns: "Month", "Year"
+  # Removes "Album details" by turning it to three columns: "Year", "Month"
   # and "Label". Changes months to numbers. Puts these new columns after "Title"
   #
   # Args:
@@ -187,8 +185,8 @@ album_details_to_three_columns <- function(dt){
   
   # Create new columns using assignment by reference and string extracting. 
   dt[,':='( # Use assignment by reference function. Extract following patterns:
-    Month = str_extract(Details, "(?<=Released: )\\w+"), # Word after "Released: "
     Year = str_extract(Details, "[:digit:]{4}"), # Any exactly four digits 
+    Month = str_extract(Details, "(?<=Released: )\\w+"), # Word after "Released: "
     Label = str_extract(Details, "(?<=Label: )\\w+") # Word after "Label: "
   )]
   
@@ -220,12 +218,10 @@ albums[["single"]][,"Single" := NULL]
 setcolorder(albums[["single"]], "Title", before = "Year")
 
 ## CONCLUSION PART 7
-# Now "Album details" columns is removed and replaced with "Month", "Year"
+# Now "Album details" columns is removed and replaced with "Year", "Month"
 # and "Label". In 7b changed single to have a Title columns like the others.
 
-# 8. CHANGE COLUMN TYPES -------------------------------------------------------
-# Currently all columns for all tables are characters. Here
-# Month and Year will be converted to numeric.
+# 8. YEAR AND MONTH TO NUMERIC -------------------------------------------------
 
 update_to_valid_cols <- function(dt, cols){
   # Returns only columns that exist in the data.table.
@@ -241,9 +237,8 @@ update_to_valid_cols <- function(dt, cols){
 }
 
 change_column_types <- function(dt, cols, fun){
-  # Currently turns all Year and Month columns to numeric.
-  # This function might later be used to do other type
-  # conversions also.
+  # Changes column types of data.table based on fun. Updates only those cols
+  # that are found in the data.table.
   #
   # Args:
   #   dt: data.table  
@@ -312,7 +307,6 @@ studio <- studio[album_and_singles, on = c(Title = "Album")]
 # studio <- studio[single[studio, .("N_of_singles" = .N),
 # by=.EACHI, on = c(Album = "Title")], on = c(Title = "Album")]
 
-
 # 10b. Singles as columns for each album ---------------------------------------
 
 # I don't want to modify 'single', so I'll use the now useless album_and_singles
@@ -335,11 +329,12 @@ album_and_singles <- dcast(album_and_singles, Album ~ Single,
 studio_and_live <- rbind(studio[,.(Title, Year, Month)],
                          live[,.(Title, Year, Month)])
 
-# Now add Month and Year columns
-album_and_singles[studio_and_live, ':='(Month = i.Month,
-                                        Year = i.Year), on = c(Album = "Title")]
+# Add Year and Month columns from studio_and_live
+album_and_singles[studio_and_live, ':='(Year = i.Year,
+                                        Month = i.Month),
+                  on = c(Album = "Title")]
 
-# Sets Month and Year to be located after Album
+# Sets Year and Month to be located after Album
 setcolorder(album_and_singles, c("Year", "Month"), after = c("Album"))
 
 # Sets keys Year and Month to order the data and allow fast searches
