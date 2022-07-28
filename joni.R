@@ -316,16 +316,14 @@ lapply(albums, setindex, "Title")
 # All data.tables now have at least one key column (Year) and most have 
 # Month as the second key. They all have Title as a secondary index.
 
+# 10. CONNECTING SINGLES WITH THEIR ALBUMS ------------------------------------
 
-# 10. QUERIES AND MODIFICATIONS -----------------------------------------------
 # Now all the tables have been turned to a usable form
-
-# Name the data.tables for ease of use
+# Let's name the data.tables for easier use
 studio =  albums[["studio"]]
 live = albums[["live"]]
 compilation = albums[["compilation"]]
 single = albums[["single"]]
-
 
 # 10a. ADD NUMBER OF SINGLES PER STUDIO ALBUM -------------------------------
 # Let's calculate the number of singles from single and add it to studio.
@@ -354,7 +352,7 @@ album_and_singles <- single[, .(Album, Title)]
 
 album_and_singles[, Single := #Create a new column with the walrus operator
                     paste0("Single_", # Create a string starting with "Single_"
-                           1:.N), # String ends with a with sequential ID.
+                           1:.N), # String ends with a sequential ID.
                   by = Album] # Group by album to match .N with N of singles
 
 # Using dcast to achieve "long to wide" operation. 
@@ -376,3 +374,6 @@ setcolorder(album_and_singles, c("Year", "Month"), after = c("Album"))
 # Sets keys Year and Month to order the data and allow fast searches
 setkey(album_and_singles, Year, Month)
 
+## CONCLUSION PART 10
+# a. studio now includes number of singles. b. new table was created to include
+# the albums and their singles as new columns (long to wide).
