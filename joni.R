@@ -7,18 +7,31 @@
 # The original HTML tables from Wikipedia are transformed to tidy and usable
 # data.tables. See README.md for screenshots and more information.
 
-# LIBRARIES ---------------------------------------------------------------
+# 1. LIBRARIES ---------------------------------------------------------------
 
 library(data.table) # Enhanced data.frame
 library(rvest) # For web scraping and HTML element manipulations
 library(stringr) # For string manipulation
 
-# CONSTANTS (ALL CONSTANTS ARE CAPITALIZED FOR CLARITY)------------------------
+# 1b. CONSTANTS (ALL CONSTANTS ARE CAPITALIZED FOR CLARITY)------------------------
 
 # Website where to find the tables. Backup html is in the files folder
 URL = "https://en.wikipedia.org/wiki/Joni_Mitchell_discography"
 
-# There are 12 tables on the website, but I want to use only these four
+# There are 12 tables on the website:
+#     1. Info box
+#     2. Studio albums,  
+#     3. Live albums
+#     4. Compilation albums
+#     5. Extended plays
+#     6. Singles
+#     7. Guest singles
+#     8. Video albums
+#     9. Music videos
+#    10. Navigation box
+#    11. Archives series
+#    12. Collaborations
+# I only want to use 2. Studio, 3. Live, 4. Compilation and 6. Singles
 ALBUM_POSITIONS = c(
   'studio'= 2L,
   'live' = 3L,
@@ -26,39 +39,12 @@ ALBUM_POSITIONS = c(
   'single' = 6L
 )
 
-# 1. URL TO HTML TABLES -------------------------------------------------------
+# 2. TURN URL TO RELEVANT HTML TABLES -------------------------------------------------------
 
-html_tables_all <- read_html(URL) |> # Read html from URL
+html_tables <- read_html(URL) |> # Read html from URL
   html_elements("table") # Find all <table> elements
 
-## CONCLUSION PART 1
-# Now html_tables_all contains a list of all the 12 html tables
-# from Joni Mitchell's discography page:
-#   1. Info box
-#   2. Studio albums,  
-#   3. Live albums
-#   4. Compilation albums
-#   5. Extended plays
-#   6. Singles
-#   7. Guest singles
-#   8. Video albums
-#   9. Music videos
-#  10. Navigation box
-#  11. Archives series
-#  12. Collaborations
-
-# 2. CHOOSE ONLY THE RELEVANT TABLES-------------------------------------------
-
-html_tables = NULL # Creates an empty object to be used to store the relevant tables
-
-# Save the four relevant tables (defined in ALBUM_POSITIONS)
-# to html_tables using a for-loop
-for (name in names(ALBUM_POSITIONS)) {
-  html_tables <- c(html_tables, # Add to list with every loop using concatenate
-                   list( # Make a new list object
-                     html_tables_all[[ # Find from all the tables
-                       ALBUM_POSITIONS[name]]])) # Gives the position as integer
-}
+html_tables <- html_tables[ALBUM_POSITIONS] # Choose only relevant tables
 
 # Name the list using names given in ALBUM_POSITIONS dictionary
 names(html_tables) <- names(ALBUM_POSITIONS)
