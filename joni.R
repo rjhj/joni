@@ -7,7 +7,7 @@
 # The original HTML tables from Wikipedia are transformed to tidy and usable
 # data.tables. See README.md for screenshots and more information.
 
-# 1a. LIBRARIES -----------------------------------------------------------------
+# 1a. LIBRARIES ----------------------------------------------------------------
 
 library(data.table) # Enhanced data.frame
 library(rvest) # For web scraping and HTML element manipulations
@@ -101,12 +101,11 @@ remove_references <- function(dt){
   dt[,(cols) := # Assign by reference
        lapply(.SD, # Apply function to all columns
        str_remove_all, # Removes all patterns of:
-       "\\[[:alnum:]+\\]"), # [ALPHANUM+]
-       .SDcols = cols] # Use all the columns
+       "\\[[:alnum:]+\\]")] # [ALPHANUM+]
 }
 
-lapply_invis <- function(dts, fun, ...) {
-  # lapply wrapped inside invisible() to hide the printing.
+lapply_invis <- function(dts, fun, ...){
+  # lapply wrapped inside invisible() to hide printing.
   #
   # Args:
   #   dts: list of data.tables
@@ -119,9 +118,29 @@ lapply_invis <- function(dts, fun, ...) {
 
 #Remove Wikipedia references from all cells
 lapply_invis(albums, remove_references)
-  
+
 ## CONCLUSION PART 4
 # Now all the Wikipedia references have been removed.
+
+# X. REPLACE NEWLINES WITH SPACES -----------------------------------------
+# Certification columns has newlines. Replace those with spaces.
+
+replace_all_str_for_cols <- function(dt, cols, s1, s2){
+  # Replaces all occurrences of s1 with s2 in specified columns
+  #
+  # Args:
+  #   dt: data.table
+  #   col: column name as a string
+  #   s1: string to be replaced
+  #   s2: string to replace with
+  dt[,(cols) := # Assign by reference
+       lapply(.SD, # Using subset of dt
+              str_replace_all, s1, s2), # Replace all s1 with s2
+     .SDcols = cols] # Use these columns
+}
+
+# Replace all newlines with spaces in Certifications for all albums
+lapply_invis(albums, replace_all_str_for_cols, c("Certifications"), '\\n', ' ')  
 
 # 5. FIXING THE HEADERS --------------------------------------------------------
 # Because all the original HTML tables have a partial double header, the more
@@ -278,7 +297,7 @@ lapply_invis(albums, set_keys, c("Year", "Month"))
 # Set Title as a secondary index for all the data.tables
 lapply(albums, setindex, "Title")
 
-# 9b. CONNECTING SINGLES WITH THEIR ALBUMS -------------------------------------
+# 9b. CREATE SHORTCUTS ---------------------------------------------------------
 
 # Now all the tables have been turned to a usable form
 # Let's name the data.tables for easier use
