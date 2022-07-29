@@ -30,16 +30,16 @@ Make sure you have installed the packages mentioned in libraries. After that you
 You can also just read joni.R, because I have added lost of comments.
 
 #### 4) What it does?
-1) Downloads all 12 tables from en.wikipedia.org/wiki/Joni_Mitchell_discography
+1) Downloads all the 12 tables from en.wikipedia.org/wiki/Joni_Mitchell_discography
 2) Only selects four of them: studio, live, compilation and single and saves them to a list called albums
 3) Turns albums to data.tables
 4) Removes the Wikipedia references, e.g. [1]
 5) Replaces newlines with spaces
-6) Fixes the double header to one
+6) Fixes the double headers
 7) Removes junk lines
-8) Turns "Album details" column to separate columns Year, Month and Label
+8) Turns Album details column to separate columns Year, Month and Label
 9) Modifies single to be more similar with others
 10) Turns Year and Month columns to numeric
 11) Sets keys and indices
 12) Adds a column to studio that tells the number of singles for that album
-13) Creates a new data.table that contains all the singles as columns for each album
+13) Creates a new data.table that contains all the singles as columns for each album (long to wide)
