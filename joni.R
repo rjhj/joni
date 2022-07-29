@@ -287,7 +287,7 @@ lapply(albums, setindex, "Title")
 
 # .EACHI groups by i, .N contains the number of rows in each group
 album_and_singles <- albums[["single"]][albums[["studio"]],
-                                        .("N_of_singles" = .N),
+                                        .("Singles" = .N),
                                         by=.EACHI, on = c(Album = "Title")]
 
 # Join the tables
@@ -297,6 +297,9 @@ albums[["studio"]] <- albums[["studio"]][album_and_singles,
 # This would be the same thing without creating the extra data.table:
 # studio <- studio[single[studio, .("N_of_singles" = .N),
 # by=.EACHI, on = c(Album = "Title")], on = c(Title = "Album")]
+
+# Sets Singles after Label
+setcolorder(albums[["studio"]], c("Singles"), after = c("Label"))
 
 # Singles as columns for each album --------------------------------------------
 # We want to create a data.table which contains singles as columns
@@ -329,3 +332,7 @@ setcolorder(album_and_singles, c("Year", "Month"), after = c("Album"))
 
 # Sets keys Year and Month to order the data and allow fast searches
 setkey(album_and_singles, Year, Month)
+
+kbl(albums[["studio"]]) |>
+  kable_material(c("striped", "hover")) 
+#kable_minimal()
