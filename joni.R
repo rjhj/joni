@@ -227,6 +227,7 @@ albums[["single"]][,"Single" := NULL]
 setcolorder(albums[["single"]], "Title", before = "Year")
 
 # YEAR AND MONTH TO NUMERIC ----------------------------------------------------
+# Changes Year and Month columns to numeric
 
 update_to_valid_cols <- function(dt, cols){
   # Returns only columns that exist in the data.table.
@@ -332,7 +333,6 @@ setcolorder(album_and_singles, c("Year", "Month"), after = c("Album"))
 
 # Sets keys Year and Month to order the data and allow fast searches
 setkey(album_and_singles, Year, Month)
-
 
 # THE END ----------------------------------------------------------------------
 
