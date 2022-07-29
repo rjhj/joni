@@ -71,6 +71,15 @@ html_table_to_dt <- function(html_table){
 # Apply the html to data.table conversion to all the html tables
 albums = lapply(html_tables, html_table_to_dt)
 
+# Notice that after this point one can view different albums with commands like:
+#
+# albums[["studio"]]
+# or
+# View(albums[["studio"]])
+#
+# I didn't create different variables for each table, because that could cause
+# some errors especially when doing other than assignments by reference 
+
 # Albums are fairly uniform, but the last columns of "studio" is junk,
 # so let's remove it
 albums[["studio"]][, ncol(albums[["studio"]]) := NULL]
@@ -271,26 +280,19 @@ lapply_invis(albums, set_keys, c("Year", "Month"))
 # Set Title as a secondary index for all the data.tables
 lapply(albums, setindex, "Title")
 
-# CREATE SHORTCUTS -------------------------------------------------------------
-# Now all the tables have been turned to a usable form we'll name them for
-# easier use
-
-studio =  albums[["studio"]]
-live = albums[["live"]]
-compilation = albums[["compilation"]]
-single = albums[["single"]]
-
 # ADD NUMBER OF SINGLES PER STUDIO ALBUM ---------------------------------------
 # Let's calculate the number of singles from single and add it to studio.
 # There are many ways to do this. I'm going to create a temporary data.table
 # called album_and_singles just for the sake of clarity and join it with studio.
 
 # .EACHI groups by i, .N contains the number of rows in each group
-album_and_singles <- single[studio, .("N_of_singles" = .N),
-               by=.EACHI, on = c(Album = "Title")]
+album_and_singles <- albums[["single"]][albums[["studio"]],
+                                        .("N_of_singles" = .N),
+                                        by=.EACHI, on = c(Album = "Title")]
 
 # Join the tables
-studio <- studio[album_and_singles, on = c(Title = "Album")]
+albums[["studio"]] <- albums[["studio"]][album_and_singles,
+                                         on = c(Title = "Album")]
 
 # This would be the same thing without creating the extra data.table:
 # studio <- studio[single[studio, .("N_of_singles" = .N),
@@ -300,7 +302,8 @@ studio <- studio[album_and_singles, on = c(Title = "Album")]
 # We want to create a data.table which contains singles as columns
 # (Single_1, etc) for their albums. Each album has 1-3 singles.
 
-album_and_singles <- single[, .(Album, Title)] # Get Album and Title columns
+# Get Album and Title columns
+album_and_singles <- albums[["single"]][, .(Album, Title)]
 
 album_and_singles[, Single := #Create a new column with the walrus operator
                     paste0("Single_", # Create a string starting with "Single_"
@@ -313,8 +316,8 @@ album_and_singles <- dcast(album_and_singles, Album ~ Single,
 
 # Currently album_and_singles isn't ordered. Let's add Year and Month for each
 # album. Since some albums are studio and some live, we'll row bind them first.
-studio_and_live <- rbind(studio[,.(Title, Year, Month)],
-                         live[,.(Title, Year, Month)])
+studio_and_live <- rbind(albums[["studio"]][,.(Title, Year, Month)],
+                         albums[["live"]][,.(Title, Year, Month)])
 
 # Add Year and Month columns from studio_and_live
 album_and_singles[studio_and_live, ':='(Year = i.Year,
