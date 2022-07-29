@@ -332,3 +332,22 @@ setcolorder(album_and_singles, c("Year", "Month"), after = c("Album"))
 
 # Sets keys Year and Month to order the data and allow fast searches
 setkey(album_and_singles, Year, Month)
+
+
+# THE END ----------------------------------------------------------------------
+
+# You can view the data.tables with these commands:
+#
+# albums[["studio"]]
+# albums[["live"]]
+# albums[["compilation"]]
+# albums[["single"]]
+# album_and_singles
+#
+# or
+#
+# View(albums[["studio"]])
+# View(albums[["live"]])
+# View(albums[["compilation"]])
+# View(albums[["single"]])
+# View(album_and_singles)
