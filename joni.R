@@ -271,7 +271,7 @@ lapply_invis(albums, set_keys, c("Year", "Month"))
 # Set Title as a secondary index for all the data.tables
 lapply(albums, setindex, "Title")
 
-# CREATE SHORTCUTS TO TABLES ---------------------------------------------------
+# CREATE SHORTCUTS -------------------------------------------------------------
 # Now all the tables have been turned to a usable form we'll name them for
 # easier use
 
@@ -300,7 +300,6 @@ studio <- studio[album_and_singles, on = c(Title = "Album")]
 # We want to create a data.table which contains singles as columns
 # (Single_1, etc) for their albums. Each album has 1-3 singles.
 
-# Overwriting album_and_singles, which has used in 10a. as temporary data.table
 album_and_singles <- single[, .(Album, Title)] # Get Album and Title columns
 
 album_and_singles[, Single := #Create a new column with the walrus operator
