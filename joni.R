@@ -7,13 +7,14 @@
 # The original HTML tables from Wikipedia are transformed to tidy and usable
 # data.tables. See README.md for screenshots and more information.
 
-# 1a. LIBRARIES ----------------------------------------------------------------
+# LIBRARIES --------------------------------------------------------------------
 
 library(data.table) # Enhanced data.frame
 library(rvest) # For web scraping and HTML element manipulations
 library(stringr) # For string manipulation
 
-# 1b. CONSTANTS (ALL CONSTANTS ARE CAPITALIZED FOR CLARITY)---------------------
+# CONSTANTS---------------------------------------------------------------------
+# All constants are CAPITALIZED for clarity
 
 # Website where to find the tables. Backup html is in the files folder
 URL = "https://en.wikipedia.org/wiki/Joni_Mitchell_discography"
@@ -38,10 +39,9 @@ ALBUM_POSITIONS = c(
   'compilation' = 4L,
   'single' = 6L
 )
-## CONCLUSION PART 1
-# Now libraries and constants have been defined.
 
-# 2. TURN URL TO RELEVANT HTML TABLES ------------------------------------------
+# TURN URL TO RELEVANT HTML TABLES ---------------------------------------------
+# We only want html tables for studio, live, compilation and single
 
 html_tables <- read_html(URL) |> # Read html from URL
   html_elements("table") # Find all <table> elements
@@ -51,11 +51,7 @@ html_tables <- html_tables[ALBUM_POSITIONS] # Choose only relevant tables
 # Name the list using names given in ALBUM_POSITIONS dictionary
 names(html_tables) <- names(ALBUM_POSITIONS)
 
-## CONCLUSION PART 2
-# html_tables list now contains all the relevant tables: studio, live,
-# compilation and single
-
-# 3. CONVERT THE HTML TABLES TO DATA.TABLES-------------------------------------
+# CONVERT THE HTML TABLES TO DATA.TABLES----------------------------------------
 
 html_table_to_dt <- function(html_table){
   # Converts the html table into a data.frame
@@ -79,14 +75,7 @@ albums = lapply(html_tables, html_table_to_dt)
 # so let's remove it
 albums[["studio"]][, ncol(albums[["studio"]]) := NULL]
 
-## CONCLUSION PART 3
-# albums list now contains the four data.tables. You can access them using:
-# albums[["live"]] for live albums, etc
-# class(albums[["live"]]) returns [1] "data.table" "data.frame" as it should
-# View(albums[["live"]]) to see the data.table in RStudio
-# However currently all the data.tables need a lot of tidying.
-
-# 4. REMOVE WIKIPEDIA REFERENCES -----------------------------------------------
+# REMOVE WIKIPEDIA REFERENCES --------------------------------------------------
 # Tables are from Wikipedia so all the reference links (such as [12] or [A])
 # need to be removed from the data.
 
@@ -104,6 +93,7 @@ remove_references <- function(dt){
        "\\[[:alnum:]+\\]")] # [ALPHANUM+]
 }
 
+# This function will be used a lot in this program
 lapply_invis <- function(dts, fun, ...){
   # lapply wrapped inside invisible() to hide printing.
   #
@@ -119,11 +109,8 @@ lapply_invis <- function(dts, fun, ...){
 #Remove Wikipedia references from all cells
 lapply_invis(albums, remove_references)
 
-## CONCLUSION PART 4
-# Now all the Wikipedia references have been removed.
-
-# X. REPLACE NEWLINES WITH SPACES -----------------------------------------
-# Certification columns has newlines. Replace those with spaces.
+# REPLACE NEWLINES WITH SPACES -------------------------------------------------
+# Certification columns have newline characters (\n). Replace those with spaces.
 
 replace_all_str_for_cols <- function(dt, cols, s1, s2){
   # Replaces all occurrences of s1 with s2 in specified columns
@@ -142,14 +129,13 @@ replace_all_str_for_cols <- function(dt, cols, s1, s2){
 # Replace all newlines with spaces in Certifications for all albums
 lapply_invis(albums, replace_all_str_for_cols, c("Certifications"), '\\n', ' ')  
 
-# 5. FIXING THE HEADERS --------------------------------------------------------
-# Because all the original HTML tables have a partial double header, the more
-# useful part of header is currently the first row of the table. That works
-# well as the actual header.
+# FIXING THE HEADERS -----------------------------------------------------------
+# Because all the original html tables have a partial double header, the more
+# useful part of header is currently the first row of the table. We'll move the
+# first row to be the actual header.
 
 first_row_to_header <- function(dt){
-  # Replaces the headers with the first row, since
-  # original table used double header.
+  # Replaces the headers with the first row
   #
   # Args:
   #   dt: data.table
@@ -161,17 +147,14 @@ first_row_to_header <- function(dt){
 # Sets first row as headers
 lapply_invis(albums, first_row_to_header)
 
-## CONCLUSION PART 5
-# Headers have been fixed
-
-# 6.REMOVE LAST AND FIRST ROW --------------------------------------------------
+# REMOVE LAST AND FIRST ROW ----------------------------------------------------
 # First and last line for all the data.tables are junk, so they need to be
 # removed. Currently first lines are just copies of the headers and the last
 # lines say: "—" denotes a recording that did not chart or was not released
 # in that territory.
 
 remove_first_and_last_row <- function(dt){
-  # Removes the first and last row from a data.table.
+  # Removes the first and last row from a data.table
   #
   # Args:
   #   dt: data.table
@@ -186,13 +169,10 @@ remove_first_and_last_row <- function(dt){
 # Removes first and last row for each data.table.
 albums = lapply(albums, remove_first_and_last_row)
 
-## CONCLUSION PART 6
-# "Junk rows" have been removed
-
-# 7a. EXTRACTING FROM ONE COLUMN TO MAKE THREE-----------------------------------
-# All the data.tables (except single) has a column "Album details", which might
-# contain rows such as: "Released: March 1968\nLabel: Reprise".
-# We need to extract columns "Year", "Month" and "Label" from "Album details"
+# EXTRACTING FROM ONE COLUMN TO MAKE THREE--------------------------------------
+# All the data.tables (except single) has a column "Album details", which
+# contains data such as: "Released: March 1968\nLabel: Reprise".
+# We need to extract columns "Year", "Month" and "Label" from "Album details".
 
 album_details_to_three_columns <- function(dt){
   # Removes "Album details" by turning it to three columns: "Year", "Month"
@@ -219,13 +199,14 @@ album_details_to_three_columns <- function(dt){
               after = "Title") # ..to be after the "Title".
 }
 
-# Removes and turns column "Album details" to "Month", "Year" and "Label" columns
-# for data.tables "studio,  "live" and "compilation".
+# Removes and turns column "Album details" to "Month", "Year" and "Label"
+# columns for data.tables "studio, "live" and "compilation".
 lapply_invis(albums[c("studio", "live", "compilation")],
              album_details_to_three_columns)
 
-# 7b. UPDATE SINGLES TO BE MORE SIMILAR WITH OTHERS ----------------------------
-# Currently single doesn't have a title column, so let's change that.
+# UPDATE SINGLES TO BE MORE SIMILAR WITH OTHERS --------------------------------
+# Currently single has some differences with other data.tables, which are
+# fixed here.
 
 # Create a new column Title from Single but with double quotes removed
 albums[["single"]][, "Title" := str_remove_all(Single, '\\"')]
@@ -236,11 +217,7 @@ albums[["single"]][,"Single" := NULL]
 # Move Title to the first position.
 setcolorder(albums[["single"]], "Title", before = "Year")
 
-## CONCLUSION PART 7
-# Now "Album details" columns is removed and replaced with "Year", "Month"
-# and "Label". In 7b changed single to have a Title columns like the others.
-
-# 8. YEAR AND MONTH TO NUMERIC -------------------------------------------------
+# YEAR AND MONTH TO NUMERIC ----------------------------------------------------
 
 update_to_valid_cols <- function(dt, cols){
   # Returns only columns that exist in the data.table.
@@ -274,10 +251,7 @@ change_column_types <- function(dt, cols, fun){
 # Change the data types of "Year" and "Month" to numeric
 lapply_invis(albums, change_column_types, c("Year", "Month"), as.numeric)
 
-## CONCLUSION PART 8
-# Now the data types for Year and Month have been changed to numeric.
-
-# 9a. SET KEYS AND INDICES ------------------------------------------------------
+# SET KEYS AND INDICES ---------------------------------------------------------
 # To speed up future queries, we set keys and indices.
 
 set_keys <- function(dt, cols){
@@ -297,22 +271,16 @@ lapply_invis(albums, set_keys, c("Year", "Month"))
 # Set Title as a secondary index for all the data.tables
 lapply(albums, setindex, "Title")
 
-# 9b. CREATE SHORTCUTS ---------------------------------------------------------
+# CREATE SHORTCUTS TO TABLES ---------------------------------------------------
+# Now all the tables have been turned to a usable form we'll name them for
+# easier use
 
-# Now all the tables have been turned to a usable form
-# Let's name the data.tables for easier use
 studio =  albums[["studio"]]
 live = albums[["live"]]
 compilation = albums[["compilation"]]
 single = albums[["single"]]
 
-## CONCLUSION PART 9
-# All data.tables now have at least one key column (Year) and most have 
-# Month as the second key. They all have Title as a secondary index.
-# Also in 9b. created a variable for each data.table in the albums list
-# for convenience.
-
-# 10a. ADD NUMBER OF SINGLES PER STUDIO ALBUM ----------------------------------
+# ADD NUMBER OF SINGLES PER STUDIO ALBUM ---------------------------------------
 # Let's calculate the number of singles from single and add it to studio.
 # There are many ways to do this. I'm going to create a temporary data.table
 # called album_and_singles just for the sake of clarity and join it with studio.
@@ -328,7 +296,7 @@ studio <- studio[album_and_singles, on = c(Title = "Album")]
 # studio <- studio[single[studio, .("N_of_singles" = .N),
 # by=.EACHI, on = c(Album = "Title")], on = c(Title = "Album")]
 
-# 10b. Singles as columns for each album ---------------------------------------
+# Singles as columns for each album --------------------------------------------
 # We want to create a data.table which contains singles as columns
 # (Single_1, etc) for their albums. Each album has 1-3 singles.
 
@@ -359,7 +327,3 @@ setcolorder(album_and_singles, c("Year", "Month"), after = c("Album"))
 
 # Sets keys Year and Month to order the data and allow fast searches
 setkey(album_and_singles, Year, Month)
-
-## CONCLUSION PART 10
-# a. studio now includes number of singles. b. new table was created to include
-# the albums and their singles as new columns (long to wide).
