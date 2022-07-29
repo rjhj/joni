@@ -301,7 +301,7 @@ albums[["studio"]] <- albums[["studio"]][album_and_singles,
 # Sets Singles after Label
 setcolorder(albums[["studio"]], c("Singles"), after = c("Label"))
 
-# Singles as columns for each album --------------------------------------------
+# SINGLES AS COLUMNS FOR EACH ALBUM --------------------------------------------
 # We want to create a data.table which contains singles as columns
 # (Single_1, etc) for their albums. Each album has 1-3 singles.
 
@@ -332,7 +332,3 @@ setcolorder(album_and_singles, c("Year", "Month"), after = c("Album"))
 
 # Sets keys Year and Month to order the data and allow fast searches
 setkey(album_and_singles, Year, Month)
-
-kbl(albums[["studio"]]) |>
-  kable_material(c("striped", "hover")) 
-#kable_minimal()
